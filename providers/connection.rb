@@ -102,12 +102,11 @@ action :setup do
     end
   end
 
-  # build the userlist, pgbouncer.ini, upstart conf and logrotate.d templates
+  # build the userlist, pgbouncer.ini, upstart conf templates
   {
     "/etc/pgbouncer/userlist-#{new_resource.db_alias}.txt" => 'etc/pgbouncer/userlist.txt.erb',
     "/etc/pgbouncer/pgbouncer-#{new_resource.db_alias}.ini" => 'etc/pgbouncer/pgbouncer.ini.erb',
-    "/etc/init/pgbouncer-#{new_resource.db_alias}.conf" => 'etc/init/pgbouncer.conf.erb',
-    "/etc/logrotate.d/pgbouncer-#{new_resource.db_alias}" => 'etc/logrotate.d/pgbouncer-logrotate.d.erb'
+    "/etc/init/pgbouncer-#{new_resource.db_alias}.conf" => 'etc/init/pgbouncer.conf.erb'
   }.each do |key, source_template|
     ## We are setting destination_file to a duplicate of key because the hash
     ## key is frozen and immutable.
@@ -162,6 +161,19 @@ action :setup do
       })
     end
   end
+
+  template "/etc/logrotate.d/pgbouncer-#{new_resource.db_alias}" do
+      cookbook 'pgbouncer'
+      source 'etc/logrotate.d/pgbouncer-logrotate.d.erb'
+      owner "root"
+      group "root"
+      mode "0644"
+      variables({
+        db_alias: new_resource.db_alias,
+        log_dir: new_resource.log_dir,
+        pid_dir: new_resource.pid_dir
+      })
+    end
 
   new_resource.updated_by_last_action(true)
 end
