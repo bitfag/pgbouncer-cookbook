@@ -9,3 +9,5 @@ gem 'rake', '~> 10.3.2'
 group :integration do
   gem 'travis'
 end
+gem "test-kitchen"
+gem "kitchen-vagrant"

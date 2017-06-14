@@ -6,3 +6,4 @@ Berksfile.lock
 .kitchen.local.yml
 *.swp
 tmp/
+.kitchen/

@@ -126,3 +126,10 @@ task :vagrant_reprovision do
   puts "starting up"
   Rake::Task['vagrant:provision'].invoke
 end
+
+begin
+  require 'kitchen/rake_tasks'
+  Kitchen::RakeTasks.new
+rescue LoadError
+  puts '>>>>> Kitchen gem not loaded, omitting tasks' unless ENV['CI']
+end

@@ -1,0 +1,11 @@
+[Unit]
+Description=pgbouncer-<%= @db_alias %>
+After=network.target
+
+[Service]
+User=<%= @user %>
+ExecStart=/usr/sbin/pgbouncer /etc/pgbouncer/pgbouncer-<%= @db_alias %>.ini
+ExecReload=/usr/sbin/pgbouncer -R /etc/pgbouncer/pgbouncer-<%= @db_alias %>.ini
+
+[Install]
+WantedBy=multi-user.target

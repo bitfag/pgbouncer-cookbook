@@ -1,0 +1,9 @@
+{
+  "name": "kitchen-node",
+  "chef_environment": "test",
+  "run_list": [
+
+  ],
+  "normal": {
+  }
+}
