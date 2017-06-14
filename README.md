@@ -9,15 +9,16 @@ exposing a local *nix socket that routes to a downstream database on another hos
 Requirements
 ============
 
-Chef 0.7+
+Chef 12+
 
 Platform
 --------
 Tested:
-* Ubuntu
+* Ubuntu 14.04
+* Ubuntu 16.04
 
 Untested:
-* Debian (should work)
+* Debian
 * RHEL, Centos, etc
 
 Dependencies
@@ -97,7 +98,14 @@ example
 
 Example of how to use the resource; also exercised in the spec/ tests
 
-Testing
+Testing with kitchen
+=======
+
+```
+kitchen test
+```
+
+Testing with vagrant (**may be outdated**)
 =======
 
 This cookbook has been "Tested in Production"&trade;, but also has some basic RSpec tests.
@@ -124,6 +132,7 @@ Vagrant plugin, created here at Whitepages, called [vagrant-chefzero](https://gi
 License and Author(s)
 =====================
 
+- Author:: Vladimir Kamarzin (<vvk@vvk.pp.ru>)
 - Author:: Owyn Richen (<orichen@whitepages.com>)
 - Author:: Jack Foy (<jfoy@whitepages.com>)
 - Author:: Paul Kohan (<pkohan@whitepages.com>)
