@@ -26,17 +26,27 @@ end
 
 action :start do
   service "pgbouncer-#{new_resource.db_alias}-start" do
-    service_name "pgbouncer-#{new_resource.db_alias}" # this is to eliminate warnings around http://tickets.opscode.com/browse/CHEF-3694
-    provider Chef::Provider::Service::Upstart
+    if node['platform_version'].to_f == 14.04
+        provider Chef::Provider::Service::Upstart
+        service_name "pgbouncer-#{new_resource.db_alias}" # this is to eliminate warnings around http://tickets.opscode.com/browse/CHEF-3694
+    elsif node['platform_version'].to_f >= 16.04
+        provider Chef::Provider::Service::Systemd
+        service_name "pgbouncer-#{new_resource.db_alias}.service"
+    end
     action [:enable, :start, :reload]
   end
   new_resource.updated_by_last_action(true)
 end
 
 action :restart do
-  service "pgbouncer-#{new_resource.db_alias}-restart" do
-    service_name "pgbouncer-#{new_resource.db_alias}" # this is to eliminate warnings around http://tickets.opscode.com/browse/CHEF-3694
-    provider Chef::Provider::Service::Upstart
+   service "pgbouncer-#{new_resource.db_alias}-restart" do
+    if node['platform_version'].to_f == 14.04
+        provider Chef::Provider::Service::Upstart
+        service_name "pgbouncer-#{new_resource.db_alias}" # this is to eliminate warnings around http://tickets.opscode.com/browse/CHEF-3694
+    elsif node['platform_version'].to_f >= 16.04
+        provider Chef::Provider::Service::Systemd
+        service_name "pgbouncer-#{new_resource.db_alias}.service"
+    end
     action [:enable, :restart]
   end
   new_resource.updated_by_last_action(true)
@@ -44,8 +54,13 @@ end
 
 action :stop do
   service "pgbouncer-#{new_resource.db_alias}-stop" do
-    service_name "pgbouncer-#{new_resource.db_alias}" # this is to eliminate warnings around http://tickets.opscode.com/browse/CHEF-3694
-    provider Chef::Provider::Service::Upstart
+    if node['platform_version'].to_f == 14.04
+        provider Chef::Provider::Service::Upstart
+        service_name "pgbouncer-#{new_resource.db_alias}" # this is to eliminate warnings around http://tickets.opscode.com/browse/CHEF-3694
+    elsif node['platform_version'].to_f >= 16.04
+        provider Chef::Provider::Service::Systemd
+        service_name "pgbouncer-#{new_resource.db_alias}.service"
+    end
     action :stop
   end
   new_resource.updated_by_last_action(true)
@@ -103,12 +118,14 @@ action :setup do
     end
   end
 
-  # build the userlist, pgbouncer.ini, upstart conf templates
-  {
-    "/etc/pgbouncer/userlist-#{new_resource.db_alias}.txt" => 'etc/pgbouncer/userlist.txt.erb',
-    "/etc/pgbouncer/pgbouncer-#{new_resource.db_alias}.ini" => 'etc/pgbouncer/pgbouncer.ini.erb',
-    "/etc/init/pgbouncer-#{new_resource.db_alias}.conf" => 'etc/init/pgbouncer.conf.erb'
-  }.each do |key, source_template|
+  # build the userlist, pgbouncer.ini, upstart/systemd conf templates
+  templates = Hash.new.tap do |templates|
+      templates["/etc/pgbouncer/userlist-#{new_resource.db_alias}.txt"] = 'etc/pgbouncer/userlist.txt.erb'
+      templates["/etc/pgbouncer/pgbouncer-#{new_resource.db_alias}.ini"] = 'etc/pgbouncer/pgbouncer.ini.erb'
+      templates["/etc/init/pgbouncer-#{new_resource.db_alias}.conf"] = 'etc/init/pgbouncer.conf.erb' if node['platform_version'].to_f == 14.04
+      templates["/etc/systemd/system/pgbouncer-#{new_resource.db_alias}.service"] = 'etc/systemd/system/pgbouncer.service.erb' if node['platform_version'].to_f >= 16.04
+  end
+  templates.each do |key, source_template|
     ## We are setting destination_file to a duplicate of key because the hash
     ## key is frozen and immutable.
     destination_file = key.dup
@@ -181,12 +198,14 @@ end
 
 action :teardown do
 
-  { "/etc/pgbouncer/userlist-#{new_resource.db_alias}.txt" => 'etc/pgbouncer/userlist.txt.erb',
-    "/etc/pgbouncer/pgbouncer-#{new_resource.db_alias}.ini" => 'etc/pgbouncer/pgbouncer.ini.erb',
-    "/etc/init/pgbouncer-#{new_resource.db_alias}.conf" => 'etc/pgbouncer/pgbouncer.conf',
-    "/etc/logrotate.d/pgbouncer-#{new_resource.db_alias}" => 'etc/logrotate.d/pgbouncer-logrotate.d'
-  }.each do |destination_file, source_template|
-    file destination_file do
+  templates = Hash.new.tap do |templates|
+      templates["/etc/pgbouncer/userlist-#{new_resource.db_alias}.txt"] = 'etc/pgbouncer/userlist.txt.erb'
+      templates["/etc/pgbouncer/pgbouncer-#{new_resource.db_alias}.ini"] = 'etc/pgbouncer/pgbouncer.ini.erb'
+      templates["/etc/logrotate.d/pgbouncer-#{new_resource.db_alias}"] = 'etc/logrotate.d/pgbouncer-logrotate.d'
+      templates["/etc/init/pgbouncer-#{new_resource.db_alias}.conf"] = 'etc/init/pgbouncer.conf.erb' if node['platform_version'].to_f == 14.04
+  end
+  templates.each do |key, source_template|
+    file key do
       action :delete
     end
   end
