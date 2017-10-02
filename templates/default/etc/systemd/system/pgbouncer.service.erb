@@ -3,6 +3,9 @@ Description=pgbouncer-<%= @db_alias %>
 After=network.target
 
 [Service]
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /run/pgbouncer
+ExecStartPre=/bin/chown -R <%= @user %>:<%= @user %> /run/pgbouncer
 User=<%= @user %>
 ExecStart=/usr/sbin/pgbouncer /etc/pgbouncer/pgbouncer-<%= @db_alias %>.ini
 ExecReload=/bin/kill -HUP $MAINPID
